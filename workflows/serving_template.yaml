@@ -1,0 +1,82 @@
+apiVersion: ai.sap.com/v1alpha1
+kind: ServingTemplate
+metadata:
+  name: granite-guardian-3-2-5b-vllm
+  annotations:
+    scenarios.ai.sap.com/description: "Granite Guardian 3.2 5B Safety Guardrail with vLLM - Baked Image"
+    scenarios.ai.sap.com/name: "granite-guardian"
+    executables.ai.sap.com/description: "vLLM OpenAI-compatible server"
+    executables.ai.sap.com/name: "granite-guardian-serving"
+  labels:
+    scenarios.ai.sap.com/id: "granite-guardian"
+    ai.sap.com/version: "1.0.0"
+
+spec:
+  template:
+    apiVersion: "serving.kserve.io/v1beta1"
+    metadata:
+      annotations: |
+        autoscaling.knative.dev/metric: concurrency
+        autoscaling.knative.dev/target: "1"
+        autoscaling.knative.dev/targetBurstCapacity: "0"
+      labels: |
+        ai.sap.com/resourcePlan: infer.l
+
+    spec: |
+      predictor:
+        imagePullSecrets:
+          - name: docker-secret
+
+        minReplicas: 1
+        maxReplicas: 1
+
+        containers:
+          - name: kserve-container
+            image: docker.io/<your-username>/granite-guardian-5b:latest
+
+            ports:
+              - containerPort: 8080
+                protocol: TCP
+
+            resources:
+              limits:
+                nvidia.com/gpu: 1
+                memory: 20Gi
+                cpu: "4"
+              requests:
+                nvidia.com/gpu: 1
+                memory: 16Gi
+                cpu: "2"
+
+            env:
+              - name: HF_HOME
+                value: "/tmp/huggingface"
+              - name: TRANSFORMERS_CACHE
+                value: "/tmp/huggingface"
+              - name: VLLM_CACHE_ROOT
+                value: "/tmp/vllm"
+              - name: PYTHONUNBUFFERED
+                value: "1"
+
+
+              - name: VLLM_USE_V1
+                value: "0"
+
+              - name: TRANSFORMERS_OFFLINE
+                value: "1"
+              - name: HF_HUB_OFFLINE
+                value: "1"
+
+            readinessProbe:
+              httpGet:
+                path: /v1/models
+                port: 8080
+              initialDelaySeconds: 120
+              periodSeconds: 30
+
+            livenessProbe:
+              httpGet:
+                path: /v1/models
+                port: 8080
+              initialDelaySeconds: 180
+              periodSeconds: 60
