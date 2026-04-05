@@ -55,5 +55,4 @@ exec python3 -u -m vllm.entrypoints.openai.api_server \
   --max-num-seqs 2 \
   --tensor-parallel-size 1 \
   --trust-remote-code \
-  --enforce-eager \
-  --log-level info
+  --enforce-eager
