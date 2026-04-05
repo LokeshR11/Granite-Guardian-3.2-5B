@@ -2,7 +2,7 @@ FROM vllm/vllm-openai:v0.8.2
 
 USER root
 
-# ── Engine fix (Tesla T4 sm_75) ───────────────────────────────────────────────
+
 ENV VLLM_USE_V1=0
 ENV VLLM_WORKER_MULTIPROC_METHOD=spawn
 ENV VLLM_DISABLE_COMPILE_CACHE=1
