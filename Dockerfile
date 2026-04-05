@@ -44,7 +44,6 @@ snapshot_download(
 print("Model downloaded successfully")
 EOF
 
-
 RUN chmod -R 777 /tmp/models
 
 # Verify
