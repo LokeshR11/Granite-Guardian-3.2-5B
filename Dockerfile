@@ -1,6 +1,5 @@
 FROM vllm/vllm-openai:v0.8.2
 
-# ── Engine fix (Tesla T4 sm_75 compatibility) ─────────────────────────────────
 ENV VLLM_USE_V1=0
 ENV VLLM_WORKER_MULTIPROC_METHOD=spawn
 ENV VLLM_DISABLE_COMPILE_CACHE=1
@@ -19,7 +18,7 @@ ENV XDG_CACHE_HOME=/tmp/cache
 ENV VLLM_CACHE_ROOT=/tmp/vllm
 ENV OUTLINES_CACHE_DIR=/tmp/outlines
 
-# ── Dependencies (pinned) ─────────────────────────────────────────────────────
+
 RUN pip install --no-cache-dir \
     transformers==4.49.0 \
     huggingface_hub
