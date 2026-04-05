@@ -1,92 +1,115 @@
 apiVersion: ai.sap.com/v1alpha1
 kind: ServingTemplate
+
 metadata:
-  name: granite-guardian-3.2-5b-vllm
+  name: granite-guardian-3-2-5b-vllm
+  annotations:
+    scenarios.ai.sap.com/description: "Granite Guardian 3.2 5B Safety Guardrail with vLLM - Baked Image"
+    scenarios.ai.sap.com/name: "granite-guardian"
+    executables.ai.sap.com/description: "vLLM OpenAI-compatible server"
+    executables.ai.sap.com/name: "granite-guardian-serving"
+  labels:
+    scenarios.ai.sap.com/id: "granite-guardian"
+    ai.sap.com/version: "1.0.0"
 
 spec:
   template:
+    apiVersion: "serving.kserve.io/v1beta1"
+
     metadata:
-      annotations:
+      annotations: |
         autoscaling.knative.dev/metric: concurrency
         autoscaling.knative.dev/target: "1"
         autoscaling.knative.dev/targetBurstCapacity: "0"
+      labels: |
+        ai.sap.com/resourcePlan: infer.l
 
-    spec:
+    spec: |
       predictor:
+        imagePullSecrets:
+          - name: docker-secret
+
         minReplicas: 1
         maxReplicas: 1
 
         containers:
-        - name: kserve-container
-          image: lokeshr11/granite-guardian-3.2-5b:latest   
+          - name: kserve-container
+            image: docker.io/lokeshr11/granite-guardian-3.2-5b:v2
 
-          ports:
-            - containerPort: 8080
-              protocol: TCP
+            ports:
+              - containerPort: 8080
+                protocol: TCP
 
-          resources:
-            limits:
-              nvidia.com/gpu: 1
-              memory: "20Gi"
-              cpu: "4"
-            requests:
-              nvidia.com/gpu: 1
-              memory: "16Gi"
-              cpu: "2"
+            volumeMounts:
+              - name: shm
+                mountPath: /dev/shm
 
-          env:
-            - name: HF_HOME
-              value: "/tmp/huggingface"
-            - name: TRANSFORMERS_CACHE
-              value: "/tmp/huggingface"
-            - name: VLLM_CONFIG_ROOT
-              value: "/tmp/vllm"
-            - name: VLLM_CACHE_ROOT
-              value: "/tmp/vllm"
-            - name: XDG_CACHE_HOME
-              value: "/tmp/cache"
-            - name: OUTLINES_CACHE_DIR
-              value: "/tmp/outlines"
-            - name: TRITON_CACHE_DIR
-              value: "/tmp/triton"
-            - name: NUMBA_CACHE_DIR
-              value: "/tmp/numba"
-            - name: TORCH_HOME
-              value: "/tmp/torch"
+            resources:
+              limits:
+                nvidia.com/gpu: 1
+                memory: "20Gi"
+                cpu: "4"
+              requests:
+                nvidia.com/gpu: 1
+                memory: "16Gi"
+                cpu: "2"
 
-            - name: VLLM_USE_V1
-              value: "0"
-            - name: VLLM_WORKER_MULTIPROC_METHOD
-              value: "spawn"
-            - name: VLLM_DISABLE_COMPILE_CACHE
-              value: "1"
+            env:
+              # Writable cache dirs
+              - name: HF_HOME
+                value: "/tmp/huggingface"
+              - name: TRANSFORMERS_CACHE
+                value: "/tmp/huggingface"
+              - name: VLLM_CONFIG_ROOT
+                value: "/tmp/vllm"
+              - name: VLLM_CACHE_ROOT
+                value: "/tmp/vllm"
+              - name: XDG_CACHE_HOME
+                value: "/tmp/cache"
+              - name: OUTLINES_CACHE_DIR
+                value: "/tmp/outlines"
+              - name: TRITON_CACHE_DIR
+                value: "/tmp/triton"
+              - name: NUMBA_CACHE_DIR
+                value: "/tmp/numba"
+              - name: TORCH_HOME
+                value: "/tmp/torch"
 
-            - name: TRANSFORMERS_OFFLINE
-              value: "1"
-            - name: HF_HUB_OFFLINE
-              value: "1"
+              # Python logs
+              - name: PYTHONUNBUFFERED
+                value: "1"
 
-            - name: PYTHONUNBUFFERED
-              value: "1"
+              # vLLM engine config
+              - name: VLLM_USE_V1
+                value: "0"
+              - name: VLLM_WORKER_MULTIPROC_METHOD
+                value: "spawn"
+              - name: VLLM_DISABLE_COMPILE_CACHE
+                value: "1"
 
-          volumeMounts:
-            - name: shm
-              mountPath: /dev/shm
+              # Offline mode
+              - name: TRANSFORMERS_OFFLINE
+                value: "1"
+              - name: HF_HUB_OFFLINE
+                value: "1"
 
-          readinessProbe:
-            httpGet:
-              path: /v1/models
-              port: 8080
-            initialDelaySeconds: 300
-            periodSeconds: 30
-            failureThreshold: 15
+            readinessProbe:
+              httpGet:
+                path: /v1/models
+                port: 8080
+              initialDelaySeconds: 300
+              periodSeconds: 30
+              failureThreshold: 15
+              timeoutSeconds: 10
 
-          livenessProbe:
-            httpGet:
-              path: /v1/models
-              port: 8080
-            initialDelaySeconds: 420
-            periodSeconds: 60
+            livenessProbe:
+              httpGet:
+                path: /v1/models
+                port: 8080
+              initialDelaySeconds: 420
+              periodSeconds: 60
+              failureThreshold: 5
+              timeoutSeconds: 10
 
         volumes:
           - name: shm
