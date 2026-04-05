@@ -16,7 +16,6 @@ ENV TRITON_CACHE_DIR=/tmp/triton
 ENV NUMBA_CACHE_DIR=/tmp/numba
 ENV TORCH_HOME=/tmp/torch
 
-
 RUN pip install --no-cache-dir \
     transformers==4.49.0 \
     huggingface_hub
