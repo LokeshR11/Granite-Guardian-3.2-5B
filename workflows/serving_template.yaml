@@ -32,7 +32,7 @@ spec:
 
         containers:
           - name: kserve-container
-            image: docker.io/<your-username>/granite-guardian-5b:latest
+            image: docker.io/lokeshr11/granite-guardian-5b:latest
 
             ports:
               - containerPort: 8080
