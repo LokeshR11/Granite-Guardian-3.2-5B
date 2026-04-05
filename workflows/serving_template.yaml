@@ -34,7 +34,7 @@ spec:
 
         containers:
           - name: kserve-container
-            image: docker.io/lokeshr11/granite-guardian-3.2-5b:v2
+            image: docker.io/lokeshr11/granite-guardian-3.2-5b:latest
 
             ports:
               - containerPort: 8080
