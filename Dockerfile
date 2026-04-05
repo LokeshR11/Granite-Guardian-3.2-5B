@@ -12,7 +12,7 @@ ENV PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 ENV CUDA_VISIBLE_DEVICES=0
 
 # -------------------------------
-# Writable paths (CRITICAL for KServe)
+# Writable paths 
 # -------------------------------
 ENV HF_HOME=/tmp/huggingface
 ENV TRANSFORMERS_CACHE=/tmp/huggingface
