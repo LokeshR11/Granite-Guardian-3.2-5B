@@ -68,3 +68,6 @@ EXPOSE 8080
 # ── Override base entrypoint ───────────────────────────────────────────────────
 ENTRYPOINT []
 CMD ["/app/start.sh"]
+
+
+#Final-Fix
